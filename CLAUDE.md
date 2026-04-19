@@ -35,3 +35,56 @@ Every project must:
 - Use present tense, imperative mood: `Add feature`, `Fix bug`, `Update config`
 - Subject line under 72 characters
 - Always include `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+
+## Key Projects
+
+### Supertrend Algo (`Downloads/supertrend-algo-exness-master/`)
+
+A Flask web app bridging TradingView webhook alerts → MetaTrader 5 trade execution. Architecture:
+
+```
+TradingView Pine Script alert → POST /tvwebhook → Flask app → MT5 worker process (per user) → broker
+```
+
+- Multi-user: each user has their own MT5 background worker process
+- Entry point: `main.py`
+- Web routes in `web/`, utilities in `utils/`
+- **Requires MT5 terminal running on the same Windows machine** (MetaTrader5 Python package is Windows-only)
+
+Run the app:
+```bat
+pip install -r requirements.txt
+python main.py
+```
+
+Or use the provided scripts: `execute_main.bat` (Windows) / `execute_main.sh` (bash).
+
+The app is deployed to a VPS (see `Documents/Trading Terminal.txt` for endpoints).
+
+### MCP MetaTrader 5 Server (`Downloads/mcp-metatrader5-server/`)
+
+A FastMCP server exposing MT5 trading functions to AI assistants via the Model Context Protocol.
+
+- Source: `src/mcp_mt5/main.py`
+- Uses `uv` for dependency management (`pyproject.toml`, `uv.lock`)
+- Python 3.11+ required
+
+Run (stdio mode for MCP clients):
+```bash
+uv run mt5mcp
+```
+
+Run (HTTP mode for development — set `MT5_MCP_TRANSPORT=http` in `.env`):
+```bash
+uv run mt5mcp
+```
+
+Tests:
+```bash
+uv run pytest
+```
+
+Install into Claude Code:
+```bash
+uv run fastmcp install claude-code src/mcp_mt5/main.py
+```
