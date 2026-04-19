@@ -30,6 +30,16 @@ Every project must:
 **Git identity:** adnovation / adnovationllp@gmail.com  
 **Current repo:** https://github.com/Adnovation01/Claude-Project
 
+## Commit & Push Rules (MANDATORY)
+
+These rules apply to **every project and task — current and future — without exception**:
+
+- **Commit and push after every meaningful unit of work**: new file, feature, fix, config change, or documentation update. Never leave work uncommitted at the end of a session.
+- **Stage only relevant files**: never use `git add .` blindly — always add specific files to avoid committing system files, secrets, or unrelated changes.
+- **Push immediately after committing**: `git push origin main` every time. Do not accumulate unpushed commits.
+- **Keep CLAUDE.md current**: update this file whenever the project structure, workflow, commands, or context changes — then commit and push the update as its own clean commit.
+- **Never skip this process**: not for small edits, not for "temporary" changes, not for quick experiments. Every change that matters gets committed and pushed.
+
 ## Commit Style
 
 - Use present tense, imperative mood: `Add feature`, `Fix bug`, `Update config`
