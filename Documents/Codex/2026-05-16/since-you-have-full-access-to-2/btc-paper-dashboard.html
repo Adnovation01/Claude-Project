@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BTC/USDT Paper Trade Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101112;
+      --panel: #181a1d;
+      --panel-2: #202326;
+      --text: #f2f0ea;
+      --muted: #a7a39a;
+      --line: #34383d;
+      --green: #2bd498;
+      --red: #ff5f73;
+      --amber: #f4c95d;
+      --cyan: #5fd7ff;
+      --violet: #c99cff;
+      --shadow: rgba(0, 0, 0, .35);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      border-right: 1px solid var(--line);
+      background: #141517;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    main {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 21px;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: grid;
+      gap: 6px;
+    }
+
+    .price {
+      font-size: 36px;
+      line-height: 1;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .delta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 7px 9px;
+      font-size: 12px;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill.green { color: var(--green); }
+    .pill.red { color: var(--red); }
+    .pill.amber { color: var(--amber); }
+    .pill.cyan { color: var(--cyan); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 16px 48px var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 84px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    canvas {
+      width: 100%;
+      height: 330px;
+      display: block;
+      background: #121416;
+      border-radius: 8px;
+    }
+
+    .setups {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .setup {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .setup h3 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+
+    .setup p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .levels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .level {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      min-height: 54px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #282c30;
+      color: var(--text);
+      border-radius: 7px;
+      min-height: 36px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: #646a72; }
+    button.primary { background: #20463b; border-color: #2f856e; color: #dffbf0; }
+    button.warn { background: #4a2630; border-color: #9b3c4c; color: #ffe1e6; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .trade-form {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .trade-form input, .trade-form select {
+      min-width: 0;
+      background: #111315;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 7px;
+      min-height: 36px;
+      padding: 7px 8px;
+    }
+
+    .trade-form .wide {
+      grid-column: span 2;
+    }
+
+    .bias {
+      border-left: 3px solid var(--amber);
+      padding-left: 12px;
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1050px) {
+      .app { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .setups { grid-template-columns: 1fr; }
+      .trade-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .trade-form .wide { grid-column: span 2; }
+    }
+
+    @media (max-width: 620px) {
+      main, aside { padding: 14px; }
+      .grid { grid-template-columns: 1fr; }
+      .levels { grid-template-columns: 1fr; }
+      .trade-form { grid-template-columns: 1fr; }
+      .trade-form .wide { grid-column: auto; }
+      .price { font-size: 30px; }
+      th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="status">
+        <h1>BTC/USDT Paper Desk</h1>
+        <div class="price" id="lastPrice">$78,281.63</div>
+        <div class="delta" id="sessionDelta">24h: -1.42% | high $79,561.94 | low $77,640.00</div>
+      </div>
+
+      <div class="pill-row">
+        <span class="pill amber" id="biasPill">Bias: wait for confirmation</span>
+        <span class="pill cyan" id="feedPill">Feed: connecting</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Working Plan</h2>
+        </div>
+        <div class="panel-body bias" id="planText">
+          <p>Hourly trend is still weak below the 20/50 EMA zone. The 15m rebound has momentum, but VWAP overhead makes a blind long unattractive.</p>
+          <p>Best paper trade: wait for either a reclaim above resistance or a rejection below support.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Risk Frame</h2>
+        </div>
+        <div class="panel-body">
+          <div class="pill-row">
+            <span class="pill">Paper only</span>
+            <span class="pill">No live orders</span>
+            <span class="pill">Target: +$1,000</span>
+          </div>
+          <p class="note" style="margin-top:12px">A fixed profit target requires position sizing and risk limits. This dashboard logs setups and P/L math; it does not execute trades.</p>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Market Snapshot</h2>
+          <div class="toolbar">
+            <button id="refreshBtn" title="Refresh candles">Refresh</button>
+            <button id="exportBtn" title="Download paper log">Export</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="grid">
+            <div class="metric"><div class="label">15m EMA 20 / 50</div><div class="value" id="ema15">78,193.92 / 78,322.09</div></div>
+            <div class="metric"><div class="label">15m RSI / ATR</div><div class="value" id="rsi15">68.20 / 125.08</div></div>
+            <div class="metric"><div class="label">1h EMA 20 / 50</div><div class="value" id="ema1h">78,552.80 / 79,239.76</div></div>
+            <div class="metric"><div class="label">1h RSI / ATR</div><div class="value" id="rsi1h">27.39 / 313.96</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>15m Structure</h2>
+          <span class="note" id="chartNote">Recent candles from Binance BTCUSDT</span>
+        </div>
+        <div class="panel-body">
+          <canvas id="chart" width="1200" height="430" aria-label="BTCUSDT 15 minute candle chart"></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Conditional Paper Setups</h2>
+        </div>
+        <div class="panel-body setups" id="setupList"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Trade Journal</h2>
+          <span class="note" id="journalStats">$0 realized | 0 open</span>
+        </div>
+        <div class="panel-body">
+          <form class="trade-form" id="tradeForm">
+            <select name="side" aria-label="Side">
+              <option>LONG</option>
+              <option>SHORT</option>
+              <option>WAIT</option>
+            </select>
+            <input name="entry" type="number" step="0.01" placeholder="Entry">
+            <input name="stop" type="number" step="0.01" placeholder="Stop">
+            <input name="target" type="number" step="0.01" placeholder="Target">
+            <input name="size" type="number" step="0.0001" placeholder="BTC size">
+            <input name="status" placeholder="Status" value="Planned">
+            <input class="wide" name="rationale" placeholder="Rationale">
+            <button class="primary" type="submit">Add Log</button>
+            <button class="warn" id="clearBtn" type="button">Clear</button>
+          </form>
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Side</th>
+                  <th>Entry</th>
+                  <th>Stop</th>
+                  <th>Target</th>
+                  <th>Size</th>
+                  <th>Status</th>
+                  <th>Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="journalBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const fallback = {
+      last: 78281.63,
+      changePercent: -1.417,
+      high: 79561.94,
+      low: 77640,
+      m15: { ema20: 78193.92, ema50: 78322.09, rsi: 68.20, atr: 125.08, high: 78364.65, low: 77833.40, vwap: 78787.18 },
+      h1: { ema20: 78552.80, ema50: 79239.76, rsi: 27.39, atr: 313.96, high: 79561.94, low: 77640, vwap: 80083.42 }
+    };
+
+    const setups = [
+      {
+        side: "LONG",
+        tone: "green",
+        title: "Reclaim Breakout",
+        trigger: 78370,
+        entry: 78390,
+        stop: 77960,
+        target: 79350,
+        size: 1.05,
+        rationale: "Only if price accepts above the recent 15m high and holds. This asks the bounce to prove demand before risking paper capital."
+      },
+      {
+        side: "SHORT",
+        tone: "red",
+        title: "Support Failure",
+        trigger: 77830,
+        entry: 77800,
+        stop: 78180,
+        target: 76850,
+        size: 1.05,
+        rationale: "If the rebound fails and 77.8k breaks, trend continuation is cleaner than fighting the hourly downtrend."
+      }
+    ];
+
+    const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+    const money = n => "$" + fmt.format(Number(n || 0));
+    const storeKey = "btc-paper-journal-v1";
+    let candles = [];
+    let snapshot = { ...fallback };
+
+    function ema(values, length) {
+      const alpha = 2 / (length + 1);
+      return values.slice(1).reduce((prev, val) => val * alpha + prev * (1 - alpha), values[0]);
+    }
+
+    function rsi(values, length = 14) {
+      let gains = 0, losses = 0;
+      for (let i = values.length - length; i < values.length; i++) {
+        const change = values[i] - values[i - 1];
+        if (change >= 0) gains += change;
+        else losses -= change;
+      }
+      const rs = gains / (losses || 0.000001);
+      return 100 - (100 / (1 + rs));
+    }
+
+    function atr(rows, length = 14) {
+      const trs = [];
+      for (let i = 1; i < rows.length; i++) {
+        const high = rows[i].high, low = rows[i].low, prevClose = rows[i - 1].close;
+        trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+      }
+      return trs.slice(-length).reduce((a, b) => a + b, 0) / length;
+    }
+
+    function vwap(rows) {
+      let pv = 0, volume = 0;
+      rows.forEach(row => {
+        const typical = (row.high + row.low + row.close) / 3;
+        pv += typical * row.volume;
+        volume += row.volume;
+      });
+      return pv / volume;
+    }
+
+    function parseKlines(raw) {
+      return raw.map(row => ({
+        time: row[0],
+        open: Number(row[1]),
+        high: Number(row[2]),
+        low: Number(row[3]),
+        close: Number(row[4]),
+        volume: Number(row[5])
+      }));
+    }
+
+    async function loadMarket() {
+      document.getElementById("feedPill").textContent = "Feed: updating";
+      const [tickerRes, k15Res, k1hRes] = await Promise.all([
+        fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"),
+        fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=120"),
+        fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=120")
+      ]);
+      const ticker = await tickerRes.json();
+      const k15 = parseKlines(await k15Res.json());
+      const k1h = parseKlines(await k1hRes.json());
+      candles = k15;
+
+      const c15 = k15.map(c => c.close);
+      const c1h = k1h.map(c => c.close);
+      snapshot = {
+        last: Number(ticker.lastPrice),
+        changePercent: Number(ticker.priceChangePercent),
+        high: Number(ticker.highPrice),
+        low: Number(ticker.lowPrice),
+        m15: {
+          ema20: ema(c15, 20),
+          ema50: ema(c15, 50),
+          rsi: rsi(c15),
+          atr: atr(k15),
+          high: Math.max(...k15.slice(-24).map(c => c.high)),
+          low: Math.min(...k15.slice(-24).map(c => c.low)),
+          vwap: vwap(k15)
+        },
+        h1: {
+          ema20: ema(c1h, 20),
+          ema50: ema(c1h, 50),
+          rsi: rsi(c1h),
+          atr: atr(k1h),
+          high: Math.max(...k1h.slice(-24).map(c => c.high)),
+          low: Math.min(...k1h.slice(-24).map(c => c.low)),
+          vwap: vwap(k1h)
+        }
+      };
+      renderMarket();
+      renderChart();
+      document.getElementById("feedPill").textContent = "Feed: live";
+    }
+
+    function renderMarket() {
+      document.getElementById("lastPrice").textContent = money(snapshot.last);
+      document.getElementById("sessionDelta").textContent = `24h: ${snapshot.changePercent.toFixed(2)}% | high ${money(snapshot.high)} | low ${money(snapshot.low)}`;
+      document.getElementById("ema15").textContent = `${fmt.format(snapshot.m15.ema20)} / ${fmt.format(snapshot.m15.ema50)}`;
+      document.getElementById("rsi15").textContent = `${snapshot.m15.rsi.toFixed(2)} / ${fmt.format(snapshot.m15.atr)}`;
+      document.getElementById("ema1h").textContent = `${fmt.format(snapshot.h1.ema20)} / ${fmt.format(snapshot.h1.ema50)}`;
+      document.getElementById("rsi1h").textContent = `${snapshot.h1.rsi.toFixed(2)} / ${fmt.format(snapshot.h1.atr)}`;
+      const aboveShort = snapshot.last > snapshot.m15.ema20;
+      const belowHourly = snapshot.last < snapshot.h1.ema20;
+      document.getElementById("biasPill").textContent = belowHourly && aboveShort ? "Bias: bounce inside downtrend" : "Bias: wait for confirmation";
+      document.getElementById("setupList").innerHTML = setups.map(setup => setupCard(setup)).join("");
+    }
+
+    function setupCard(setup) {
+      const risk = Math.abs(setup.entry - setup.stop) * setup.size;
+      const reward = Math.abs(setup.target - setup.entry) * setup.size;
+      const active = setup.side === "LONG" ? snapshot.last >= setup.trigger : snapshot.last <= setup.trigger;
+      return `
+        <article class="setup">
+          <h3><span>${setup.title}</span><span class="pill ${setup.tone}">${active ? "Triggered" : setup.side}</span></h3>
+          <p>${setup.rationale}</p>
+          <div class="levels">
+            <div class="level"><div class="label">Entry</div><div class="value">${money(setup.entry)}</div></div>
+            <div class="level"><div class="label">Stop</div><div class="value">${money(setup.stop)}</div></div>
+            <div class="level"><div class="label">Target</div><div class="value">${money(setup.target)}</div></div>
+          </div>
+          <div class="pill-row">
+            <span class="pill">Risk ${money(risk)}</span>
+            <span class="pill">Reward ${money(reward)}</span>
+            <button data-log='${JSON.stringify(setup)}' onclick="logSetup(this)">Log</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderChart() {
+      if (!candles.length) return;
+      const canvas = document.getElementById("chart");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const pad = { top: 22, right: 70, bottom: 30, left: 14 };
+      const rows = candles.slice(-72);
+      const high = Math.max(...rows.map(c => c.high), ...setups.map(s => s.target));
+      const low = Math.min(...rows.map(c => c.low), ...setups.map(s => s.stop));
+      const y = price => pad.top + (high - price) / (high - low) * (height - pad.top - pad.bottom);
+      const candleW = (width - pad.left - pad.right) / rows.length;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#121416";
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = "#252a2f";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        const yy = pad.top + i * (height - pad.top - pad.bottom) / 5;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, yy);
+        ctx.lineTo(width - pad.right, yy);
+        ctx.stroke();
+      }
+
+      rows.forEach((c, i) => {
+        const x = pad.left + i * candleW + candleW * .5;
+        const up = c.close >= c.open;
+        ctx.strokeStyle = up ? "#2bd498" : "#ff5f73";
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.beginPath();
+        ctx.moveTo(x, y(c.high));
+        ctx.lineTo(x, y(c.low));
+        ctx.stroke();
+        const bodyY = Math.min(y(c.open), y(c.close));
+        const bodyH = Math.max(2, Math.abs(y(c.open) - y(c.close)));
+        ctx.fillRect(x - candleW * .28, bodyY, candleW * .56, bodyH);
+      });
+
+      drawLevel(ctx, y, width, "Recent high", snapshot.m15.high, "#5fd7ff");
+      drawLevel(ctx, y, width, "Recent low", snapshot.m15.low, "#f4c95d");
+      drawLevel(ctx, y, width, "VWAP", snapshot.m15.vwap, "#c99cff");
+      drawLevel(ctx, y, width, "Last", snapshot.last, "#f2f0ea");
+    }
+
+    function drawLevel(ctx, y, width, label, value, color) {
+      const yy = y(value);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(14, yy);
+      ctx.lineTo(width - 70, yy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = "12px Inter, sans-serif";
+      ctx.fillText(`${label} ${fmt.format(value)}`, width - 64, yy + 4);
+    }
+
+    function getJournal() {
+      const saved = localStorage.getItem(storeKey);
+      if (saved) return JSON.parse(saved);
+      return [{
+        time: new Date().toLocaleString(),
+        side: "WAIT",
+        entry: "",
+        stop: "",
+        target: "",
+        size: "",
+        status: "Planned",
+        rationale: "Initial read: BTC/USDT is bouncing from the 77.6k low but remains below hourly EMAs. Wait for breakout above 78.37k or support failure below 77.83k."
+      }];
+    }
+
+    function saveJournal(rows) {
+      localStorage.setItem(storeKey, JSON.stringify(rows));
+      renderJournal();
+    }
+
+    function renderJournal() {
+      const rows = getJournal();
+      const body = document.getElementById("journalBody");
+      body.innerHTML = rows.map(row => `
+        <tr>
+          <td>${row.time}</td>
+          <td>${row.side}</td>
+          <td>${row.entry ? money(row.entry) : ""}</td>
+          <td>${row.stop ? money(row.stop) : ""}</td>
+          <td>${row.target ? money(row.target) : ""}</td>
+          <td>${row.size || ""}</td>
+          <td>${row.status}</td>
+          <td>${row.rationale}</td>
+        </tr>
+      `).join("");
+      const open = rows.filter(r => r.status && !/closed/i.test(r.status) && r.side !== "WAIT").length;
+      document.getElementById("journalStats").textContent = `$0 realized | ${open} open`;
+    }
+
+    function logSetup(button) {
+      const setup = JSON.parse(button.dataset.log);
+      const rows = getJournal();
+      rows.unshift({
+        time: new Date().toLocaleString(),
+        side: setup.side,
+        entry: setup.entry,
+        stop: setup.stop,
+        target: setup.target,
+        size: setup.size,
+        status: "Planned",
+        rationale: setup.rationale
+      });
+      saveJournal(rows);
+    }
+
+    document.getElementById("tradeForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.currentTarget));
+      const rows = getJournal();
+      rows.unshift({ time: new Date().toLocaleString(), ...data });
+      saveJournal(rows);
+      event.currentTarget.reset();
+      event.currentTarget.status.value = "Planned";
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      if (confirm("Clear the local paper journal?")) {
+        localStorage.removeItem(storeKey);
+        renderJournal();
+      }
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(getJournal(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `btc-paper-journal-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", () => loadMarket().catch(showFeedError));
+
+    function showFeedError(error) {
+      console.error(error);
+      document.getElementById("feedPill").textContent = "Feed: fallback";
+      renderMarket();
+      renderJournal();
+    }
+
+    renderMarket();
+    renderJournal();
+    loadMarket().catch(showFeedError);
+    setInterval(() => loadMarket().catch(showFeedError), 60000);
+  </script>
+</body>
+</html>
