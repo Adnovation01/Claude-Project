@@ -46,6 +46,36 @@ These rules apply to **every project and task — current and future — without
 - Subject line under 72 characters
 - Always include `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 
+## Installed Plugins & Skills — When and How to Use Them
+
+Claude Code has the following plugins installed (user scope). Use them **proactively** at the trigger points below — don't wait to be asked.
+
+| Plugin | Trigger / When to use | What it does |
+|---|---|---|
+| **superpowers** | Start of any non-trivial feature, bugfix, or refactor (more than a one-line change) | Run `/brainstorm` → `/write-plan` → `/execute-plan`. Enforces TDD (red/green), YAGNI, DRY, and systematic debugging instead of ad-hoc edits. |
+| **context7** | Before writing code against any library/framework/API you're not 100% certain about the current version's syntax for (Flask, MetaTrader5, FastMCP, requests, etc.) | Pulls live, version-accurate docs and code examples into context — avoids hallucinated APIs. |
+| **github** | Any time you need to create/update issues, PRs, review diffs, or check CI status on `Adnovation01/*` repos | Native GitHub MCP — issues, PRs, reviews, repo search, full API access. |
+| **commit-commands** | After every meaningful unit of work (per Commit & Push Rules below) | Use `/commit` and `/push` for consistent, well-formatted commits and immediate pushes. |
+| **claude-md-management** | Whenever project structure, workflow, or commands change; periodically audit this file | Audits CLAUDE.md for staleness, captures session learnings, keeps this file accurate. |
+| **code-review** | Before considering a feature/fix "done", especially before pushing to `main` or opening a PR | Multi-agent automated review with confidence-scored findings — catches bugs/security issues a single pass misses. |
+| **code-simplifier** | Immediately after writing/editing code, as a final pass on just-modified files | Cleans up duplication and clarifies logic in recently changed code without altering behavior. |
+| **feature-dev** | For larger features needing exploration + architecture + review (e.g. new endpoints, new MT5 worker logic) | Structured workflow: explore codebase → design architecture → implement → quality review. |
+| **chrome-devtools-mcp** | Testing the Supertrend Flask dashboard (BTC paper trade dashboard, webhook UI, login pages) | Drives a real Chrome browser — inspect network requests, console errors, screenshots, performance traces. Always verify UI changes this way before reporting done. |
+| **frontend-design** | Building or improving any HTML/CSS/JS UI (trading dashboards, status pages) | Generates polished, distinctive frontend code — avoid generic/bland AI-default styling. |
+| **hookify** | When the user gives a recurring instruction ("always do X", "never do Y", "stop doing Z") | Convert it into a markdown-defined hook so the behavior is enforced automatically going forward, instead of relying on memory alone. |
+
+### Recommended workflow for a typical task
+
+1. **Plan** (superpowers `/brainstorm` + `/write-plan`) for anything beyond a trivial fix.
+2. **Research** unfamiliar APIs via context7 before coding.
+3. **Implement** (feature-dev for larger features; direct edits for small ones).
+4. **Clean up** with code-simplifier on changed files.
+5. **Verify**: run tests; for any web/dashboard change, drive it with chrome-devtools-mcp.
+6. **Review** with code-review before finalizing.
+7. **Commit & push** via commit-commands (`/commit`, `/push`) — per the mandatory rules below.
+8. **Update CLAUDE.md** via claude-md-management if anything structural changed, then commit that too.
+9. If the user states a standing preference/rule mid-task, capture it with **hookify** so it's enforced automatically next time.
+
 ## Key Projects
 
 ### Supertrend Algo (`Downloads/supertrend-algo-exness-master/`)
